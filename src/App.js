@@ -61,16 +61,70 @@ function App() {
     fetchData();
   }, []);
 
-  const navs = ["订单供给", "运力履约", "服务质量", "毛利趋势"]
+  const navs = ["订单供给", "运力履约", "服务质量", "毛利趋势"];
 
+  // 生成随机数的工具函数
+  const generateRandomNumber = (min, max) => {
+    return min + Math.random() * (max - min);
+  };
+
+  // 计算订单利润
+  const calculateProfit = (cost, price, orderFeeRate, regionalPolicyFeeRate) => {
+    const orderFee = cost * (orderFeeRate / 100);
+    const regionalPolicyFee = cost * (regionalPolicyFeeRate / 100);
+    return price - cost - orderFee - regionalPolicyFee;
+  };
+
+  // 计算利润率
+  const calculateProfitMargin = (profit, cost) => {
+    if (cost === 0) return 0;
+    return (profit / cost) * 100;
+  };
+
+  // 生成模拟订单数据
+  const generateMockOrderData = (count) => {
+    const regions = ["曼哈顿", "国贸", "商业中心"];
+    const data = [];
+    
+    for (let i = 0; i < count; i++) {
+      // 模拟订单成本（100-500元随机数）
+      const cost = generateRandomNumber(100, 500);
+      // 模拟订单售价（成本的1.2-1.8倍）
+      const price = cost * generateRandomNumber(1.2, 1.8);
+      // 模拟订单手续费率（1-3%）
+      const orderFeeRate = generateRandomNumber(1, 3);
+      // 模拟地区政策手续费率（1-3%）
+      const regionalPolicyFeeRate = generateRandomNumber(1, 3);
+      // 计算订单利润
+      const profit = calculateProfit(cost, price, orderFeeRate, regionalPolicyFeeRate);
+      // 计算利润率
+      const profitMargin = calculateProfitMargin(profit, cost);
+      
+      data.push({
+        key: i,
+        date: `2023-02-0${i % 9 + 1}`,
+        region: regions[i % regions.length],
+        cost: cost,
+        price: price,
+        orderFeeRate: orderFeeRate,
+        regionalPolicyFeeRate: regionalPolicyFeeRate,
+        profit: profit,
+        profitMargin: profitMargin,
+      });
+    }
+    
+    return data;
+  };
+
+  // 表格列配置
   const columns = [
     {
       title: '日期',
-      dataIndex: 'name',
+      dataIndex: 'date',
     },
     {
       title: '区域',
-      dataIndex: 'age',
+      dataIndex: 'region',
     },
     {
       title: '订单成本',
@@ -83,37 +137,33 @@ function App() {
       render: (value) => `¥${value.toFixed(2)}`,
     },
     {
-      title: '订单手续费',
-      dataIndex: 'fee',
+      title: '订单手续费率',
+      dataIndex: 'orderFeeRate',
       render: (value) => `${value.toFixed(2)}%`,
     },
-     {
-      title: '地区政策手续费',
-      dataIndex: 'feeP',
+    {
+      title: '地区政策手续费率',
+      dataIndex: 'regionalPolicyFeeRate',
+      render: (value) => `${value.toFixed(2)}%`,
+    },
+    {
+      title: '订单利润',
+      dataIndex: 'profit',
+      render: (value) => (
+        <span style={{ color: value < 100 ? 'red' : 'inherit' }}>
+          ¥{value.toFixed(2)}
+        </span>
+      ),
+    },
+    {
+      title: '利润率',
+      dataIndex: 'profitMargin',
       render: (value) => `${value.toFixed(2)}%`,
     },
   ];
-  const data = [];
-  for (let i = 0; i < 46; i++) {
-    // 模拟订单成本（100-500元随机数）
-    const cost = 100 + Math.random() * 400;
-    // 模拟订单售价（成本的1.2-1.8倍）
-    const price = cost * (1.2 + Math.random() * 0.6);
-    // 模拟订单手续费（售价的1-3%）
-    const fee = 100 * (0.01 + Math.random() * 0.02);
-    // 模拟订单手续费（售价的1-3%）
-    const feeP = 100 * (0.01 + Math.random() * 0.02);
-    
-    data.push({
-      key: i,
-      name: `2023-02-0${i % 9 + 1}`,
-      age: ["曼哈顿", "国贸", "商业中心"][i % 3],
-      cost: cost,
-      price: price,
-      feeP:feeP,
-      fee: fee,
-    });
-  }
+
+  // 生成46条模拟订单数据
+  const data = generateMockOrderData(46);
 
   return (
     <div className="App">
